@@ -1,15 +1,30 @@
-// 설정 및 상태 관리
+// 1. 내일 날짜 계산
+const today = new Date();
+const tomorrow = new Date(today);
+tomorrow.setDate(today.getDate() + 1);
+
+// 설정 기본값
 const config = {
-    date: new Date(),
-    accentColor: '#EF4444', // 기본 Red
+    date: tomorrow,      // 기본값: 내일
+    accentColor: '#EF4444', // 기본값: 빨강
     fontScale: 1.0,
     colors: [
-        '#EF4444', '#F97316', '#FACC15', '#84CC16', '#22C55E', '#14B8A6',
-        '#06B6D4', '#3B82F6', '#6366F1', '#A855F7', '#EC4899', '#FFFFFF'
+        '#EF4444', // Red
+        '#F97316', // Orange
+        '#FACC15', // Yellow
+        '#84CC16', // Lime
+        '#22C55E', // Green
+        '#14B8A6', // Teal
+        '#06B6D4', // Cyan
+        '#3B82F6', // Blue
+        '#6366F1', // Indigo
+        '#A855F7', // Purple
+        '#EC4899', // Pink
+        '#FFFFFF'  // White
     ]
 };
 
-// DOM 요소 선택
+// DOM 요소
 const canvas = document.getElementById('thumbnailCanvas');
 const ctx = canvas.getContext('2d');
 const dateInput = document.getElementById('dateInput');
@@ -18,88 +33,92 @@ const scaleInput = document.getElementById('scaleInput');
 const scaleValue = document.getElementById('scaleValue');
 const downloadBtn = document.getElementById('downloadBtn');
 
-// 캔버스 초기화
-function initCanvas() {
-    // 1920x1080 (FHD) 해상도 고정
-    canvas.width = 1920;
-    canvas.height = 1080;
-}
-
-// Helper: Hex -> RGBA 변환 (그림자용)
+// Hex -> RGBA 변환
 function hexToRgba(hex, alpha) {
     let c;
     if (/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)) {
         c = hex.substring(1).split('');
-        if (c.length === 3) {
-            c = [c[0], c[0], c[1], c[1], c[2], c[2]];
-        }
+        if (c.length === 3) c = [c[0], c[0], c[1], c[1], c[2], c[2]];
         c = '0x' + c.join('');
         return 'rgba(' + [(c >> 16) & 255, (c >> 8) & 255, c & 255].join(',') + ',' + alpha + ')';
     }
     return hex;
 }
 
-// 그리기 함수
+// 날짜를 YYYY-MM-DD 문자열로 변환 (Input value용)
+function formatDateForInput(date) {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+}
+
+// 메인 그리기 함수
 function draw() {
+    // 캔버스 크기 고정 (FHD)
+    canvas.width = 1920;
+    canvas.height = 1080;
+
     const width = canvas.width;
     const height = canvas.height;
 
-    // 1. 배경 (고급스러운 검정 그라디언트)
+    // 1. 배경
     const gradient = ctx.createLinearGradient(0, 0, width, height);
-    gradient.addColorStop(0, '#0a0a0a'); // 아주 짙은 회색
-    gradient.addColorStop(0.5, '#000000'); // 완전 검정
-    gradient.addColorStop(1, '#050505'); 
+    gradient.addColorStop(0, '#0a0a0a');
+    gradient.addColorStop(0.5, '#000000');
+    gradient.addColorStop(1, '#050505');
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, width, height);
 
-    // 2. 비네팅 효과 (가장자리 어둡게)
+    // 2. 비네팅
     const vignette = ctx.createRadialGradient(width/2, height/2, width/3, width/2, height/2, width);
     vignette.addColorStop(0, 'rgba(0,0,0,0)');
     vignette.addColorStop(1, 'rgba(0,0,0,0.8)');
     ctx.fillStyle = vignette;
     ctx.fillRect(0, 0, width, height);
 
-    // 3. 날짜 텍스트 구성
+    // 3. 날짜 텍스트 생성
     const year = config.date.getFullYear();
     const month = String(config.date.getMonth() + 1).padStart(2, '0');
     const day = String(config.date.getDate()).padStart(2, '0');
     const dateString = `${year}.${month}.${day}`;
 
-    // 4. 폰트 설정
-    const fontSize = 340 * config.fontScale; // 기본 340px
-    ctx.font = `900 ${fontSize}px 'Inter', sans-serif`; // Inter 폰트, Extra Bold
+    // 4. 텍스트 스타일
+    const fontSize = 340 * config.fontScale;
+    ctx.font = `900 ${fontSize}px 'Inter', sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
 
-    // 5. 텍스트 그리기 (글로우 효과 + 그림자)
+    // 5. 텍스트 그리기
     ctx.save();
     
-    // 네온 글로우 효과
-    ctx.shadowColor = hexToRgba(config.accentColor, 0.6); // 액센트 컬러의 반투명 버전
-    ctx.shadowBlur = 60; // 흐림 정도
+    // 글로우 효과
+    ctx.shadowColor = hexToRgba(config.accentColor, 0.6);
+    ctx.shadowBlur = 60;
     ctx.shadowOffsetX = 0;
     ctx.shadowOffsetY = 0;
 
-    // 텍스트 색상
+    // 글자색
     ctx.fillStyle = config.accentColor;
     ctx.fillText(dateString, width / 2, height / 2);
     
-    // 텍스트를 한 번 더 그려서 선명하게 (글로우 중심부 강화)
+    // 선명도 보강
     ctx.shadowBlur = 10;
     ctx.fillText(dateString, width / 2, height / 2);
 
     ctx.restore();
 }
 
-// 색상 팔레트 생성
+// 색상 버튼 생성
 function createColorPalette() {
+    colorGrid.innerHTML = ''; // 초기화
     config.colors.forEach(color => {
         const btn = document.createElement('button');
-        btn.className = `w-10 h-10 rounded-full border-2 transition-all duration-200 hover:scale-110 focus:outline-none`;
+        // 버튼 스타일 명시적 지정
+        btn.className = 'w-8 h-8 rounded-full border-2 transition-all duration-200 hover:scale-110 focus:outline-none';
         btn.style.backgroundColor = color;
         btn.style.borderColor = config.accentColor === color ? '#fff' : 'transparent';
         
-        // 선택 효과
         if (config.accentColor === color) {
             btn.classList.add('ring-2', 'ring-white/50', 'scale-110');
         }
@@ -114,23 +133,23 @@ function createColorPalette() {
     });
 }
 
+// 버튼 상태 업데이트
 function updateColorButtons() {
     const buttons = colorGrid.children;
     Array.from(buttons).forEach((btn, index) => {
         const color = config.colors[index];
         if (config.accentColor === color) {
             btn.style.borderColor = '#fff';
-            btn.classList.add('scale-110', 'shadow-lg');
+            btn.classList.add('scale-110', 'ring-2', 'ring-white/50');
         } else {
             btn.style.borderColor = 'transparent';
-            btn.classList.remove('scale-110', 'shadow-lg');
+            btn.classList.remove('scale-110', 'ring-2', 'ring-white/50');
         }
     });
 }
 
-// 이벤트 리스너 등록
+// 이벤트 리스너
 function addEventListeners() {
-    // 날짜 변경
     dateInput.addEventListener('change', (e) => {
         if(e.target.valueAsDate) {
             config.date = e.target.valueAsDate;
@@ -138,42 +157,40 @@ function addEventListeners() {
         }
     });
 
-    // 크기 변경
     scaleInput.addEventListener('input', (e) => {
         config.fontScale = parseFloat(e.target.value);
         scaleValue.textContent = `${Math.round(config.fontScale * 100)}%`;
         draw();
     });
 
-    // 다운로드
     downloadBtn.addEventListener('click', () => {
         const link = document.createElement('a');
-        const dateStr = config.date.toISOString().split('T')[0];
+        const dateStr = formatDateForInput(config.date);
         link.download = `thumbnail_${dateStr}.png`;
         link.href = canvas.toDataURL('image/png');
         link.click();
-        
-        // 버튼 클릭 애니메이션
-        downloadBtn.classList.add('scale-95');
-        setTimeout(() => downloadBtn.classList.remove('scale-95'), 150);
     });
 }
 
-// 초기화 실행
+// 초기화 (페이지 로드 시 즉시 실행)
 window.addEventListener('load', () => {
-    initCanvas();
+    // 1. 날짜 입력창에 내일 날짜 세팅
+    dateInput.value = formatDateForInput(tomorrow);
+    
+    // 2. UI 생성
     createColorPalette();
-    
-    // 날짜 입력창 초기값 (오늘)
-    dateInput.valueAsDate = new Date();
-    
     addEventListeners();
     
-    // 폰트 로딩 대기 후 그리기 (중요)
+    // 3. 폰트 로딩 확인 후 그리기 (안전장치)
     document.fonts.ready.then(() => {
         draw();
+    }).catch(() => {
+        // 폰트 로딩 실패해도 일단 그리기
+        draw(); 
     });
+
+    // 4. 즉시 그리기 (로딩 기다리지 않고 바로 시도)
+    draw();
 });
 
-// 화면 리사이즈 시 캔버스 다시 그리기 (반응형 유지)
 window.addEventListener('resize', draw);
