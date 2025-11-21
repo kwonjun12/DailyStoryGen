@@ -5,22 +5,12 @@ tomorrow.setDate(today.getDate() + 1);
 
 // 설정 기본값
 const config = {
-    date: tomorrow,      // 기본값: 내일
+    date: tomorrow,
     accentColor: '#EF4444', // 기본값: 빨강
     fontScale: 1.0,
     colors: [
-        '#EF4444', // Red
-        '#F97316', // Orange
-        '#FACC15', // Yellow
-        '#84CC16', // Lime
-        '#22C55E', // Green
-        '#14B8A6', // Teal
-        '#06B6D4', // Cyan
-        '#3B82F6', // Blue
-        '#6366F1', // Indigo
-        '#A855F7', // Purple
-        '#EC4899', // Pink
-        '#FFFFFF'  // White
+        '#EF4444', '#F97316', '#FACC15', '#84CC16', '#22C55E', '#14B8A6',
+        '#06B6D4', '#3B82F6', '#6366F1', '#A855F7', '#EC4899', '#FFFFFF'
     ]
 };
 
@@ -45,7 +35,6 @@ function hexToRgba(hex, alpha) {
     return hex;
 }
 
-// 날짜를 YYYY-MM-DD 문자열로 변환 (Input value용)
 function formatDateForInput(date) {
     const y = date.getFullYear();
     const m = String(date.getMonth() + 1).padStart(2, '0');
@@ -55,10 +44,8 @@ function formatDateForInput(date) {
 
 // 메인 그리기 함수
 function draw() {
-    // 캔버스 크기 고정 (FHD)
     canvas.width = 1920;
     canvas.height = 1080;
-
     const width = canvas.width;
     const height = canvas.height;
 
@@ -77,7 +64,7 @@ function draw() {
     ctx.fillStyle = vignette;
     ctx.fillRect(0, 0, width, height);
 
-    // 3. 날짜 텍스트 생성
+    // 3. 날짜 텍스트
     const year = config.date.getFullYear();
     const month = String(config.date.getMonth() + 1).padStart(2, '0');
     const day = String(config.date.getDate()).padStart(2, '0');
@@ -89,15 +76,13 @@ function draw() {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
 
-    // 5. 텍스트 그리기
+    // 5. 그리기
     ctx.save();
     
     // 글로우 효과
     ctx.shadowColor = hexToRgba(config.accentColor, 0.6);
     ctx.shadowBlur = 60;
-    ctx.shadowOffsetX = 0;
-    ctx.shadowOffsetY = 0;
-
+    
     // 글자색
     ctx.fillStyle = config.accentColor;
     ctx.fillText(dateString, width / 2, height / 2);
@@ -109,46 +94,95 @@ function draw() {
     ctx.restore();
 }
 
-// 색상 버튼 생성
+// 색상 팔레트 생성 (커스텀 피커 추가됨)
 function createColorPalette() {
-    colorGrid.innerHTML = ''; // 초기화
+    colorGrid.innerHTML = '';
+    
+    // 1. 기본 프리셋 버튼 생성
     config.colors.forEach(color => {
         const btn = document.createElement('button');
-        // 버튼 스타일 명시적 지정
         btn.className = 'w-8 h-8 rounded-full border-2 transition-all duration-200 hover:scale-110 focus:outline-none';
         btn.style.backgroundColor = color;
-        btn.style.borderColor = config.accentColor === color ? '#fff' : 'transparent';
+        btn.dataset.color = color; // 색상 값 저장
         
-        if (config.accentColor === color) {
-            btn.classList.add('ring-2', 'ring-white/50', 'scale-110');
-        }
-
         btn.addEventListener('click', () => {
             config.accentColor = color;
             updateColorButtons();
             draw();
         });
-
         colorGrid.appendChild(btn);
     });
+
+    // 2. 커스텀 컬러 피커 (+) 버튼 생성
+    const customWrapper = document.createElement('div');
+    customWrapper.className = 'relative w-8 h-8 rounded-full border-2 border-transparent hover:scale-110 transition-all duration-200 flex items-center justify-center bg-[#222] cursor-pointer overflow-hidden group';
+    
+    // 실제 컬러 인풋 (투명하게 덮어씌움)
+    const input = document.createElement('input');
+    input.type = 'color';
+    input.className = 'absolute inset-0 w-[200%] h-[200%] opacity-0 cursor-pointer top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2';
+    input.value = config.accentColor;
+    
+    // 플러스 아이콘 (SVG)
+    const icon = document.createElement('div');
+    icon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400 group-hover:text-white transition-colors"><path d="M5 12h14"/><path d="M12 5v14"/></svg>`;
+    icon.className = 'pointer-events-none transition-opacity duration-200';
+
+    // 이벤트 리스너
+    input.addEventListener('input', (e) => {
+        const newColor = e.target.value;
+        config.accentColor = newColor;
+        updateColorButtons();
+        draw();
+    });
+
+    customWrapper.appendChild(input);
+    customWrapper.appendChild(icon);
+    colorGrid.appendChild(customWrapper);
+
+    // 초기 상태 반영
+    updateColorButtons();
 }
 
-// 버튼 상태 업데이트
+// 버튼 상태 업데이트 (프리셋 vs 커스텀 구분)
 function updateColorButtons() {
-    const buttons = colorGrid.children;
-    Array.from(buttons).forEach((btn, index) => {
-        const color = config.colors[index];
-        if (config.accentColor === color) {
-            btn.style.borderColor = '#fff';
-            btn.classList.add('scale-110', 'ring-2', 'ring-white/50');
-        } else {
-            btn.style.borderColor = 'transparent';
-            btn.classList.remove('scale-110', 'ring-2', 'ring-white/50');
+    const buttons = Array.from(colorGrid.children);
+    const isCustomColor = !config.colors.includes(config.accentColor); // 현재 색이 프리셋에 없는지 확인
+
+    buttons.forEach((btn, index) => {
+        // 마지막 요소는 커스텀 피커
+        if (index === buttons.length - 1) {
+            const icon = btn.querySelector('div'); // SVG 아이콘 래퍼
+            
+            if (isCustomColor) {
+                // 커스텀 색상이 선택된 경우
+                btn.style.backgroundColor = config.accentColor;
+                btn.style.borderColor = '#fff';
+                btn.classList.add('scale-110', 'ring-2', 'ring-white/50');
+                if(icon) icon.style.opacity = '0'; // 플러스 아이콘 숨김
+            } else {
+                // 프리셋이 선택된 경우 (초기화)
+                btn.style.backgroundColor = '#222';
+                btn.style.borderColor = 'transparent';
+                btn.classList.remove('scale-110', 'ring-2', 'ring-white/50');
+                if(icon) icon.style.opacity = '1'; // 플러스 아이콘 보임
+            }
+        } 
+        // 프리셋 버튼들
+        else {
+            const color = config.colors[index];
+            // 현재 선택된 색상인지 확인 (대소문자 무시 비교)
+            if (config.accentColor.toLowerCase() === color.toLowerCase()) {
+                btn.style.borderColor = '#fff';
+                btn.classList.add('scale-110', 'ring-2', 'ring-white/50');
+            } else {
+                btn.style.borderColor = 'transparent';
+                btn.classList.remove('scale-110', 'ring-2', 'ring-white/50');
+            }
         }
     });
 }
 
-// 이벤트 리스너
 function addEventListeners() {
     dateInput.addEventListener('change', (e) => {
         if(e.target.valueAsDate) {
@@ -156,13 +190,11 @@ function addEventListeners() {
             draw();
         }
     });
-
     scaleInput.addEventListener('input', (e) => {
         config.fontScale = parseFloat(e.target.value);
         scaleValue.textContent = `${Math.round(config.fontScale * 100)}%`;
         draw();
     });
-
     downloadBtn.addEventListener('click', () => {
         const link = document.createElement('a');
         const dateStr = formatDateForInput(config.date);
@@ -172,25 +204,11 @@ function addEventListeners() {
     });
 }
 
-// 초기화 (페이지 로드 시 즉시 실행)
 window.addEventListener('load', () => {
-    // 1. 날짜 입력창에 내일 날짜 세팅
     dateInput.value = formatDateForInput(tomorrow);
-    
-    // 2. UI 생성
     createColorPalette();
     addEventListeners();
-    
-    // 3. 폰트 로딩 확인 후 그리기 (안전장치)
-    document.fonts.ready.then(() => {
-        draw();
-    }).catch(() => {
-        // 폰트 로딩 실패해도 일단 그리기
-        draw(); 
-    });
-
-    // 4. 즉시 그리기 (로딩 기다리지 않고 바로 시도)
+    document.fonts.ready.then(() => draw()).catch(() => draw());
     draw();
 });
-
 window.addEventListener('resize', draw);
