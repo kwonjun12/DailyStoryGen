@@ -54,21 +54,12 @@ function draw() {
     const height = canvas.height;
 
     // 1. 배경 그리기 (단색: Solid Color)
+    // 이제 어떤 추가적인 효과 없이 오직 선택된 색상만 꽉 채웁니다.
     ctx.fillStyle = config.backgroundColor;
     ctx.fillRect(0, 0, width, height);
 
-    // 2. 노이즈 텍스처 (질감 추가) - 유지
-    ctx.save();
-    ctx.globalAlpha = 0.03;
-    ctx.fillStyle = '#ffffff';
-    for(let i=0; i<width; i+=10) { 
-        for(let j=0; j<height; j+=10) {
-            if(Math.random() > 0.5) ctx.fillRect(i, j, 2, 2);
-        }
-    }
-    ctx.restore();
-
-    // 3. 비네팅 (그라디언트 효과) - 제거됨
+    // 2. 노이즈 텍스처 (이전 코드에서 제거됨)
+    // 3. 비네팅 (이전 코드에서 제거됨)
 
     // 4. 날짜 텍스트
     const year = config.date.getFullYear();
@@ -97,7 +88,6 @@ function draw() {
 function renderPalette(container, type) {
     container.innerHTML = ''; 
 
-    // 타겟 설정 (text or bg)
     const isText = type === 'text';
     const currentVal = isText ? config.accentColor : config.backgroundColor;
 
@@ -107,14 +97,12 @@ function renderPalette(container, type) {
         btn.className = 'w-8 h-8 rounded-full border-2 transition-all duration-200 hover:scale-110 focus:outline-none';
         btn.style.backgroundColor = color;
         
-        // 배경이 흰색이면 테두리 보이게
         if (!isText && color === '#FFFFFF') {
             btn.style.borderColor = '#333';
         } else {
             btn.style.borderColor = 'transparent';
         }
 
-        // 현재 선택된 색상 하이라이트
         if (currentVal.toLowerCase() === color.toLowerCase()) {
             btn.style.borderColor = '#fff';
             btn.classList.add('scale-110', 'ring-2', 'ring-white/50');
@@ -136,7 +124,6 @@ function renderPalette(container, type) {
     const customWrapper = document.createElement('div');
     customWrapper.className = 'relative w-8 h-8 rounded-full border-2 border-transparent hover:scale-110 transition-all duration-200 flex items-center justify-center bg-[#222] cursor-pointer overflow-hidden group';
     
-    // 현재 커스텀 색상인지 확인
     const isCustom = !config.colors.includes(currentVal);
     
     if (isCustom) {
@@ -145,13 +132,11 @@ function renderPalette(container, type) {
         customWrapper.classList.add('ring-2', 'ring-white/50');
     }
 
-    // Color Input (숨김)
     const input = document.createElement('input');
     input.type = 'color';
     input.className = 'absolute inset-0 w-[200%] h-[200%] opacity-0 cursor-pointer top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2';
     input.value = currentVal;
 
-    // (+) 아이콘
     const icon = document.createElement('div');
     icon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400 group-hover:text-white transition-colors"><path d="M5 12h14"/><path d="M12 5v14"/></svg>`;
     icon.className = 'pointer-events-none transition-opacity duration-200';
