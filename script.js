@@ -8,7 +8,7 @@ const config = {
     date: tomorrow,
     accentColor: '#EF4444', // 텍스트: 빨강
     backgroundColor: '#000000', // 배경: 검정
-    fontScale: 1.0,
+    fontScale: 1.0, // <-- 슬라이더 UI 100%에 맞게 1.0으로 설정
     // 기본 프리셋 색상들
     colors: [
         '#EF4444', '#F97316', '#FACC15', '#84CC16', '#22C55E', '#14B8A6',
@@ -61,22 +61,26 @@ function draw() {
     const year = config.date.getFullYear();
     const month = String(config.date.getMonth() + 1).padStart(2, '0');
     const day = String(config.date.getDate()).padStart(2, '0');
-    // 여기에 점을 추가합니다.
+    // 날짜 형식: YYYY.MM.DD.
     const dateString = `${year}.${month}.${day}.`; 
 
     // 5. 폰트 스타일
-    const fontSize = 340 * config.fontScale;
+    // 폰트의 100% 기준 크기를 기존 340px의 90%인 306px로 설정합니다.
+    const BASE_FONT_SIZE = 306; 
+    const fontSize = BASE_FONT_SIZE * config.fontScale; 
     ctx.font = `900 ${fontSize}px 'Inter', sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
 
     // 6. 그리기
     ctx.save();
+    // 글로우 효과 (텍스트 색상 기반)
     ctx.shadowColor = hexToRgba(config.accentColor, 0.6);
     ctx.shadowBlur = 60;
     ctx.fillStyle = config.accentColor;
     ctx.fillText(dateString, width / 2, height / 2);
-    ctx.shadowBlur = 10; // 선명도 보강
+    // 선명도 보강
+    ctx.shadowBlur = 10; 
     ctx.fillText(dateString, width / 2, height / 2);
     ctx.restore();
 }
