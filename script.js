@@ -54,18 +54,15 @@ function draw() {
     const height = canvas.height;
 
     // 1. 배경 그리기 (단색: Solid Color)
-    // 이제 어떤 추가적인 효과 없이 오직 선택된 색상만 꽉 채웁니다.
     ctx.fillStyle = config.backgroundColor;
     ctx.fillRect(0, 0, width, height);
-
-    // 2. 노이즈 텍스처 (이전 코드에서 제거됨)
-    // 3. 비네팅 (이전 코드에서 제거됨)
 
     // 4. 날짜 텍스트
     const year = config.date.getFullYear();
     const month = String(config.date.getMonth() + 1).padStart(2, '0');
     const day = String(config.date.getDate()).padStart(2, '0');
-    const dateString = `${year}.${month}.${day}`;
+    // 여기에 점을 추가합니다.
+    const dateString = `${year}.${month}.${day}.`; 
 
     // 5. 폰트 스타일
     const fontSize = 340 * config.fontScale;
