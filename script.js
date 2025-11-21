@@ -53,38 +53,22 @@ function draw() {
     const width = canvas.width;
     const height = canvas.height;
 
-    // 1. 배경 그리기 (Radial Gradient)
-    // 선택한 배경색이 중심, 검정색이 외곽으로 퍼지도록 설정
-    const bgGradient = ctx.createRadialGradient(width/2, height/2, 0, width/2, height/2, width);
-    
-    if (config.backgroundColor === '#000000') {
-        bgGradient.addColorStop(0, '#1a1a1a');
-        bgGradient.addColorStop(1, '#000000');
-    } else {
-        bgGradient.addColorStop(0, config.backgroundColor); // 중심: 선택한 색
-        bgGradient.addColorStop(1, '#000000'); // 외곽: 검정
-    }
-    
-    ctx.fillStyle = bgGradient;
+    // 1. 배경 그리기 (단색: Solid Color)
+    ctx.fillStyle = config.backgroundColor;
     ctx.fillRect(0, 0, width, height);
 
-    // 2. 노이즈 텍스처 (고급감)
+    // 2. 노이즈 텍스처 (질감 추가) - 유지
     ctx.save();
     ctx.globalAlpha = 0.03;
     ctx.fillStyle = '#ffffff';
-    for(let i=0; i<width; i+=10) { // 성능을 위해 간격 조정
+    for(let i=0; i<width; i+=10) { 
         for(let j=0; j<height; j+=10) {
             if(Math.random() > 0.5) ctx.fillRect(i, j, 2, 2);
         }
     }
     ctx.restore();
 
-    // 3. 비네팅
-    const vignette = ctx.createRadialGradient(width/2, height/2, width/3, width/2, height/2, width);
-    vignette.addColorStop(0, 'rgba(0,0,0,0)');
-    vignette.addColorStop(1, 'rgba(0,0,0,0.8)');
-    ctx.fillStyle = vignette;
-    ctx.fillRect(0, 0, width, height);
+    // 3. 비네팅 (그라디언트 효과) - 제거됨
 
     // 4. 날짜 텍스트
     const year = config.date.getFullYear();
@@ -111,7 +95,7 @@ function draw() {
 
 // 팔레트 생성 헬퍼 함수
 function renderPalette(container, type) {
-    container.innerHTML = ''; // 기존 버튼 초기화
+    container.innerHTML = ''; 
 
     // 타겟 설정 (text or bg)
     const isText = type === 'text';
@@ -140,7 +124,6 @@ function renderPalette(container, type) {
             if (isText) config.accentColor = color;
             else config.backgroundColor = color;
             
-            // UI 다시 그리기 (선택 상태 갱신)
             renderPalette(colorGrid, 'text');
             renderPalette(bgColorGrid, 'bg');
             draw();
@@ -174,7 +157,7 @@ function renderPalette(container, type) {
     icon.className = 'pointer-events-none transition-opacity duration-200';
     
     if (isCustom) {
-        icon.style.opacity = '0'; // 커스텀 색상이면 아이콘 숨김
+        icon.style.opacity = '0'; 
     }
 
     input.addEventListener('input', (e) => {
@@ -215,10 +198,8 @@ function addEventListeners() {
 
 // 초기화
 window.addEventListener('load', () => {
-    // 날짜 초기화
     dateInput.value = formatDateForInput(tomorrow);
     
-    // 팔레트 초기화 (여기서 두 번 호출하여 두 그리드 모두 생성)
     renderPalette(colorGrid, 'text');
     renderPalette(bgColorGrid, 'bg');
     
